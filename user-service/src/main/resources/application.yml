@@ -1,5 +1,6 @@
 server:
   port: 50001
+  address: 127.0.0.1
 
 spring:
   application:
@@ -24,6 +25,8 @@ eureka:
       defaultzone : http://localhost:8761/eureka
   instance:
     instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
+    prefer-ip-address: true
+    ip-address: ${server.address}
 
 greeting:
   message: Welcome to the simple E-commerce.
