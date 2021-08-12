@@ -34,9 +34,13 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/health-check")
+    @GetMapping("/health_check")
     public String status(HttpServletRequest request){
-        return String.format("It's Working in User Service on Port %s", request.getServerPort());
+        return String.format("It's Working in User Service, " +
+                "port(local.server.port)=%s, port(server.port)=%s,  " +
+                "token_secret=%s, token_expiration_time=%s,  " +
+                "gateway.ip=%s", env.getProperty("local.server.port"), env.getProperty("server.port"),
+                env.getProperty("token.secret"), env.getProperty("token.expiration_time"), env.getProperty("gateway.ip")) ;
     }
 
     @GetMapping("/welcome")

@@ -5,6 +5,11 @@ server:
 spring:
   application:
     name: user-service
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
   h2:
     console:
       enabled: true
@@ -31,6 +36,12 @@ eureka:
 greeting:
   message: Welcome to the simple E-commerce.
 
-token:
-  expiration_time: 864000000
-  secret: user_token
+#token:
+#  expiration_time: 864000000
+#  secret: user_token
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,refresh,health,beans,busrefresh
