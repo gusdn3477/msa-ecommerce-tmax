@@ -8,6 +8,8 @@ class ResponseOrderTest {
 
     @Test
     void setTotalPrice() {
+        ResponseOrder responseOrder = new ResponseOrder();
+
         assertEquals(true, true);
     }
 }
