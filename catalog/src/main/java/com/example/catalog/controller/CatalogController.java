@@ -9,6 +9,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,15 +34,27 @@ public class CatalogController {
         return String.format("It's Working in Catalog Service on Port %s", request.getServerPort());
     }
 
-    @GetMapping(value="/catalogs")
-    public ResponseEntity<List<ResponseCatalog>> getCatalogs(){
-        Iterable<CatalogEntity> orderList = catalogService.getAllCatalogs();
+    @GetMapping("/catalogs")
+    public ResponseEntity<List<ResponseCatalog>> getCatalogs() {
+        Iterable<CatalogEntity> catalogList = catalogService.getAllCatalogs();
 
         List<ResponseCatalog> result = new ArrayList<>();
-        orderList.forEach(v -> {
+        catalogList.forEach(v -> {
             result.add(new ModelMapper().map(v, ResponseCatalog.class));
         });
 
-        return ResponseEntity.status(HttpStatus.OK).body((result));
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @GetMapping("/catalogs/{productId}")
+    public ResponseEntity<ResponseCatalog> getCatalog(@PathVariable String productId) {
+        CatalogEntity catalogEntity = catalogService.getCatalog(productId);
+
+        if (catalogEntity != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new ModelMapper().map(catalogEntity, ResponseCatalog.class));
+        } else {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
     }
 }

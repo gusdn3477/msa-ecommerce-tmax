@@ -1,8 +1,10 @@
 package com.example.orderservice.service;
 
+import com.example.orderservice.client.CatalogServiceClient;
 import com.example.orderservice.dto.OrderDto;
 import com.example.orderservice.entity.OrderEntity;
 import com.example.orderservice.jpa.OrderRepository;
+import com.example.orderservice.vo.ResponseCatalog;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -18,11 +21,13 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository repository;
     private final Environment env;
+    private final CatalogServiceClient catalogServiceClient;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository repository, Environment env){
+    public OrderServiceImpl(OrderRepository repository, Environment env, CatalogServiceClient catalogServiceClient){
         this.repository = repository;
         this.env = env;
+        this.catalogServiceClient = catalogServiceClient;
     }
 
     @Override
@@ -54,4 +59,5 @@ public class OrderServiceImpl implements OrderService {
     public Iterable<OrderEntity> getOrdersByUserId(String userId) {
         return repository.findByUserId(userId);
     }
+
 }
