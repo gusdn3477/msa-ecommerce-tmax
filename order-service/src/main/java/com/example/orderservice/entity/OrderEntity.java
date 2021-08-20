@@ -12,7 +12,7 @@ import java.util.Date;
 @Table(name="orders")
 public class OrderEntity implements Serializable {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Column(nullable = false, length = 120)

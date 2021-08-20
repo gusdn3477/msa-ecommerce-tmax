@@ -4,6 +4,7 @@ import com.example.orderservice.client.CatalogServiceClient;
 import com.example.orderservice.dto.OrderDto;
 import com.example.orderservice.entity.OrderEntity;
 import com.example.orderservice.mq.KafkaProducer;
+import com.example.orderservice.mq.OrderProducer;
 import com.example.orderservice.service.OrderService;
 import com.example.orderservice.vo.RequestOrder;
 import com.example.orderservice.vo.ResponseCatalog;
@@ -13,6 +14,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.criterion.Order;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @Slf4j
@@ -35,16 +38,19 @@ public class OrderController {
     private final OrderService orderService;
     private final KafkaProducer kafkaProducer;
     private final CatalogServiceClient catalogServiceClient;
+    private final OrderProducer orderProducer;
     Gson gson = new Gson();
 
     @Autowired
     public OrderController(Environment env, OrderService orderService,
                            KafkaProducer kafkaProducer,
-                           CatalogServiceClient catalogServiceClient) {
+                           CatalogServiceClient catalogServiceClient,
+                           OrderProducer orderProducer) {
         this.env = env;
         this.orderService = orderService;
         this.kafkaProducer = kafkaProducer;
         this.catalogServiceClient = catalogServiceClient;
+        this.orderProducer = orderProducer;
     }
 
     @GetMapping("/health_check")
@@ -167,12 +173,20 @@ public class OrderController {
 
             OrderDto orderDto = mapper.map(orderDetails, OrderDto.class);
             orderDto.setUserId(userId);
-            OrderDto createdOrder = orderService.createOrder(orderDto);
-            ResponseOrder responseOrder = mapper.map(createdOrder, ResponseOrder.class);
+
+            //2021 08 20 주석 처리
+//            OrderDto createdOrder = orderService.createOrder(orderDto);
+//            ResponseOrder responseOrder = mapper.map(createdOrder, ResponseOrder.class);
 
             /* send message to Kafka topic */
+            orderDto.setOrderId(UUID.randomUUID().toString());
+            orderDto.setTotalPrice(orderDto.getQty() * orderDto.getUnitPrice());
+            orderDto.setUserAddress(env.getProperty("local.server.port"));
+            log.info("아이디" + env.getProperty("local.server.port"));
             kafkaProducer.send("example-catalog-topic", orderDto);
+            ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
 
+            orderProducer.send("orders", orderDto);
             /* 강사님이 새롭게 추가하라고 하신 부분 */
 
             log.info("After added orders data");
