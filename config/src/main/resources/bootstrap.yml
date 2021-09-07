@@ -1,6 +1,7 @@
 encrypt:
   key-store:
-    location: file:///C:\Users\Admin\work\demo_git\tmax_msa\keystore\apiEncryptionKey.jks
+#    location: file:///C:\Users\Admin\work\demo_git\tmax_msa\keystore\apiEncryptionKey.jks
+    location: file:/apiEncryptionKey.jks
     password: 1q2w3e4r
     alias: apiEncryptionKey
 #  key: abcdefghijklmnopqrstuvwqxyz1234567890

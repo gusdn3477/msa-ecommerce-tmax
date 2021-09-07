@@ -3,6 +3,7 @@ package com.example.catalog.controller;
 import com.example.catalog.entity.CatalogEntity;
 import com.example.catalog.service.CatalogService;
 import com.example.catalog.vo.ResponseCatalog;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/")
 public class CatalogController {
@@ -48,8 +50,10 @@ public class CatalogController {
 
     @GetMapping("/catalogs/{productId}")
     public ResponseEntity<ResponseCatalog> getCatalog(@PathVariable String productId) {
+        log.info("Before retrieve catalog data");
         CatalogEntity catalogEntity = catalogService.getCatalog(productId);
 
+        log.info("After retrieve catalogs data");
         if (catalogEntity != null) {
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ModelMapper().map(catalogEntity, ResponseCatalog.class));

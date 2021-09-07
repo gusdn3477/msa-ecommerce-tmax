@@ -2,9 +2,12 @@ package com.example.userservice.controller;
 
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.entity.UserEntity;
+import com.example.userservice.mq.KafkaProducer;
+import com.example.userservice.mq.UserProducer;
 import com.example.userservice.service.UserService;
 import com.example.userservice.vo.RequestUser;
 import com.example.userservice.vo.ResponseUser;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.rule.Mode;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -17,21 +20,30 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 @RestController
+@Slf4j
 @RequestMapping("/")
 public class UserController {
 
     private final Environment env;
     private final UserService userService;
+    private final KafkaProducer kafkaProducer;
+    private final UserProducer userProducer;
 
     @Autowired
-    public UserController(Environment env, UserService userService){
+    public UserController(Environment env, UserService userService,
+                          KafkaProducer kafkaProducer, UserProducer userProducer){
         this.env = env;
         this.userService = userService;
+        this.kafkaProducer = kafkaProducer;
+        this.userProducer = userProducer;
     }
 
     @GetMapping("/health_check")
@@ -57,8 +69,19 @@ public class UserController {
 
         // convert UserDto to ResponseUser
         ResponseUser responseUser = mapper.map(userDto, ResponseUser.class);
-
+//        userProducer.send("demo-sink-connect", userDto);
+//        userProducer.send("demo-source-connect", userDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseUser);
+    }
+
+    @PutMapping("/users/{Pwd}")
+    public void modifiedUser(@PathVariable("Pwd") String Pwd){
+        Date today = new Date();
+        ModelMapper mapper = new ModelMapper();
+
+        UserDto userDto = userService.getUserByPwd(Pwd);
+//        userDto.setModifiedAt(today);
+//        userProducer.send("demo-source-connect", userDto);
     }
 
     /* 전체 사용자 목록 */
@@ -71,6 +94,7 @@ public class UserController {
             result.add(new ModelMapper().map(v, ResponseUser.class));
         });
 
+        System.out.println(result);
         return result;
     }
 

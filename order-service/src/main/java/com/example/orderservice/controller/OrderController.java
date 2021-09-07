@@ -145,9 +145,6 @@ public class OrderController {
             }
         }
 
-
-        출처: https://itrh.tistory.com/76 [흑곰푸우]
-
         return String.format("It's Working in Order Service on PORT %s",
                 env.getProperty("local.server.port"));
     }
@@ -174,9 +171,9 @@ public class OrderController {
             OrderDto orderDto = mapper.map(orderDetails, OrderDto.class);
             orderDto.setUserId(userId);
 
-            //2021 08 20 주석 처리
-//            OrderDto createdOrder = orderService.createOrder(orderDto);
-//            ResponseOrder responseOrder = mapper.map(createdOrder, ResponseOrder.class);
+//            2021 08 20 주석 처리
+            OrderDto createdOrder = orderService.createOrder(orderDto);
+            ResponseOrder responseOrder = mapper.map(createdOrder, ResponseOrder.class);
 
             /* send message to Kafka topic */
             orderDto.setOrderId(UUID.randomUUID().toString());
@@ -184,7 +181,7 @@ public class OrderController {
             orderDto.setUserAddress(env.getProperty("local.server.port"));
             log.info("아이디" + env.getProperty("local.server.port"));
             kafkaProducer.send("example-catalog-topic", orderDto);
-            ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
+//            ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
 
             orderProducer.send("orders", orderDto);
             /* 강사님이 새롭게 추가하라고 하신 부분 */
@@ -199,6 +196,7 @@ public class OrderController {
 
     @GetMapping("/{userId}/orders")
     public ResponseEntity<List<ResponseOrder>> getOrder(@PathVariable("userId") String userId){
+        log.info("Before retrieve orders data");
         Iterable<OrderEntity> orderList = orderService.getOrdersByUserId(userId);
 
         List<ResponseOrder> result = new ArrayList<>();
@@ -206,7 +204,16 @@ public class OrderController {
             result.add(new ModelMapper().map(v, ResponseOrder.class));
         });
 
+        /*
+        try {
+            Thread.sleep(10000);
+        } catch (Exception ex){
+            log.error(ex.getMessage());
+        }*/
+        log.info("After retrieve orders data");
+
         return ResponseEntity.status(HttpStatus.OK).body(result);
+
     }
 
 }

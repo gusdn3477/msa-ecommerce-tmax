@@ -4,6 +4,13 @@ server:
 spring:
   application:
     name: catalog-service
+  zipkin:
+    base-url: http://localhost:9000
+    compression:
+      enabled: true
+  sleuth:
+    sampler:
+      probability: 1.0
   h2:
     console:
       settings:

@@ -1,6 +1,6 @@
 server:
   port: 50001
-  address: 127.0.0.1
+  #address: 127.0.0.1 이 주소만 허용하겠다라는 뜻.
 
 spring:
   application:
@@ -10,12 +10,27 @@ spring:
     port: 5672
     username: guest
     password: guest
+  zipkin:
+    base-url: http://localhost:9000
+    compression:
+      enabled: true
+  sleuth:
+    sampler:
+      probability: 1.0
   h2:
     console:
       enabled: true
       settings:
         web-allow-others: true
-        path: /h2-console
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+#  datasource:
+#    driver-class-name: org.mariadb.jdbc.Driver
+#    url: jdbc:mariadb://localhost:23306/mydb_original
+#    username: root
+#    password: test1357
 #  datasource:
 #    driver-class-name: org.h2.Driver
 #    url: jdbc:h2:mem:testdb
@@ -30,8 +45,8 @@ eureka:
       defaultzone : http://localhost:8761/eureka
   instance:
     instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-    prefer-ip-address: true
-    ip-address: ${server.address}
+    #prefer-ip-address: true
+    #ip-address: ${server.address}
 
 greeting:
   message: Welcome to the simple E-commerce.

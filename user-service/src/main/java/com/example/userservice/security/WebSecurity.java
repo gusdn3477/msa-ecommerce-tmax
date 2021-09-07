@@ -31,10 +31,11 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         http.authorizeRequests().antMatchers("/health_check/**").permitAll();
         http.authorizeRequests().antMatchers("/h2-console/**").permitAll();
         http.authorizeRequests().antMatchers("/**")
-                        .hasIpAddress("127.0.0.1")
+                .access("hasIpAddress('172.18.0.5') or hasIpAddress('127.0.0.1')")
                                 .and()
                                         .addFilter(getAuthenticationFilter());
         http.headers().frameOptions().disable();
+        //access는 여러 개 사용 가능
     }
 
     private AuthenticationFilter getAuthenticationFilter() throws Exception {

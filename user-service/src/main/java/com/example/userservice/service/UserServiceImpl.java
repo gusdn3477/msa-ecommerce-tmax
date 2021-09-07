@@ -11,6 +11,8 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
@@ -37,16 +39,20 @@ public class UserServiceImpl implements UserService {
 
     OrderServiceClient orderServiceClient;
 
+    CircuitBreakerFactory circuitBreakerFactory;
+
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            Environment env,
                            RestTemplate restTemplate,
-                           OrderServiceClient orderServiceClient) {
+                           OrderServiceClient orderServiceClient,
+                           CircuitBreakerFactory circuitBreakerFactory) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.env = env;
         this.restTemplate = restTemplate;
         this.orderServiceClient = orderServiceClient;
+        this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
     @Override
@@ -75,6 +81,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto getUserByPwd(String pwd){
+        UserEntity userEntity = userRepository.findByPwd(pwd);
+        if(userEntity == null)
+            throw new UsernameNotFoundException(("User not found"));
+
+        ModelMapper mapper = new ModelMapper();
+        mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+        UserDto userDto = mapper.map(userEntity, UserDto.class);
+
+        return userDto;
+    }
+
+    @Override
     public UserDto getUserByUserId(String userId) {
         UserEntity userEntity = userRepository.findByUserId(userId);
 
@@ -98,11 +117,17 @@ public class UserServiceImpl implements UserService {
 //        List<ResponseOrder> ordersList = orderServiceClient.getOrder(userId);
 //        userDto.setOrders(ordersList);
         List<ResponseOrder> ordersList = null;
-        try{
-            ordersList = orderServiceClient.getOrder(userId);
-        } catch (FeignException ex) {
-            log.error(ex.getMessage());
-        }
+//        try{
+//            ordersList = orderServiceClient.getOrder(userId);
+//        } catch (FeignException ex) {
+//            log.error(ex.getMessage());
+//        }
+
+        /* Circuit Breaker */
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("my-circuitbreaker");
+        ordersList = circuitBreaker.run(() -> orderServiceClient.getOrder(userId),
+                throwable -> new ArrayList<>()
+        );
 
         userDto.setOrders(ordersList);
 
